@@ -14,6 +14,7 @@ func main() {
 	err := subflag.SubCommand(os.Args[1:], []subflag.Command{
 		&InterfacerCommand{},
 		&ModelCommand{},
+		&RepackCommand{},
 	})
 	if err != nil {
 		log.Fatal(err)
