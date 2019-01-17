@@ -15,7 +15,7 @@ import (
 type RepackCommand struct {
 	Source      string
 	Destination string
-	Ignores string
+	Ignores     string
 }
 
 func (c *RepackCommand) FlagSet() *flag.FlagSet {
@@ -72,22 +72,25 @@ func (c *RepackCommand) Run(args []string) error {
 		return len(dst[j]) < len(dst[i])
 	})
 
-	for _, d := range dst {
-		if len(src) == 0 {
-			break
-		}
-		mini := computeEditDistance(d, src[0])
-		for i := 1; i < len(src); i++ {
-			v := computeEditDistance(d, src[i])
-			if mini > v {
-				src[0], src[i] = src[i], src[0]
-				mini = v
+	n := maxi(len(src), len(dst))
+	a := make([][]int, n)
+	for i := 0; i < n; i++ {
+		a[i] = make([]int, n)
+		for j := 0; j < n; j++ {
+			if i >= len(dst) || j >= len(src) {
+				a[i][j] = 0
+			} else {
+				a[i][j] = -computeEditDistance(dst[i], src[j])
 			}
 		}
-		fmt.Println(d, "=", src[0])
-		src = src[1:]
 	}
 
+	x := hungarian(a)
+	for i, d := range dst {
+		if 0 <= x[i] && x[i] < len(src) {
+			fmt.Println(d, "=", src[x[i]])
+		}
+	}
 	return nil
 }
 
@@ -144,7 +147,7 @@ func computeEditDistance(a, b string) int {
 
 	for i := 1; i <= N; i++ {
 		for j := 1; j <= M; j++ {
-			replaceCost := 3
+			replaceCost := 2
 			if x[i-1] == y[j-1] {
 				replaceCost = 0
 			}
@@ -162,7 +165,15 @@ func mini(a, b int) int {
 	}
 }
 
-func filterStrings(s []string, cond func(string)bool) []string {
+func maxi(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func filterStrings(s []string, cond func(string) bool) []string {
 	x := s[:0]
 	for _, a := range s {
 		if cond(a) {
@@ -170,4 +181,68 @@ func filterStrings(s []string, cond func(string)bool) []string {
 		}
 	}
 	return x
+}
+
+func hungarian(a [][]int) []int {
+	n := len(a)
+	fx := fill(make([]int, n), 1<<29)
+	fy := make([]int, n)
+	x := fill(make([]int, n), -1)
+	y := fill(make([]int, n), -1)
+
+	p := 0
+	q := 0
+	for i := range a {
+		for j := range a[i] {
+			fx[i] = maxi(fx[i], a[i][j])
+		}
+	}
+	for i := 0; i < n; {
+		t := fill(make([]int, n), -1)
+		s := fill(make([]int, n+1), i)
+		for p, q = 0, 0; p <= q && x[i] < 0; p++ {
+			for k, j := s[p], 0; j < n && x[i] < 0; j++ {
+				if fx[k]+fy[j] == a[k][j] && t[j] < 0 {
+					q++
+					s[q] = y[j]
+					t[j] = k
+					if s[q] < 0 {
+						for p = j; p >= 0; j = p {
+							y[j], k = t[j], t[j]
+							p = x[k]
+							x[k] = j
+						}
+					}
+				}
+			}
+		}
+		if x[i] < 0 {
+			d := 1 << 30
+			for k := 0; k <= q; k++ {
+				for j := 0; j < n; j++ {
+					if t[j] < 0 {
+						d = mini(d, fx[s[k]]+fy[j]-a[s[k]][j])
+					}
+				}
+			}
+			for j := 0; j < n; j++ {
+				if t[j] >= 0 {
+					fy[j] += d
+				}
+			}
+			for k := 0; k <= q; k++ {
+				fx[s[k]] -= d
+			}
+		} else {
+			i++
+		}
+	}
+	return x
+}
+
+func fill(a []int, v int) []int {
+	for i := range a {
+		a[i] = v
+	}
+	return a
 }
