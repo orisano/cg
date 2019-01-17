@@ -203,9 +203,11 @@ func hungarian(a [][]int) []int {
 			fx[i] = maxi(fx[i], a[i][j])
 		}
 	}
+	t := make([]int, n)
+	s := make([]int, n+1)
 	for i := 0; i < n; {
-		t := fill(make([]int, n), -1)
-		s := fill(make([]int, n+1), i)
+		t = fill(t, -1)
+		s = fill(s, i)
 		for p, q = 0, 0; p <= q && x[i] < 0; p++ {
 			for k, j := s[p], 0; j < n && x[i] < 0; j++ {
 				if fx[k]+fy[j] == a[k][j] && t[j] < 0 {
