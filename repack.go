@@ -190,8 +190,9 @@ func filterStrings(s []string, cond func(string) bool) []string {
 }
 
 func hungarian(a [][]int) []int {
+	const inf = 1<<29
 	n := len(a)
-	fx := fill(make([]int, n), 1<<29)
+	fx := fill(make([]int, n), inf)
 	fy := make([]int, n)
 	x := fill(make([]int, n), -1)
 	y := fill(make([]int, n), -1)
@@ -225,7 +226,7 @@ func hungarian(a [][]int) []int {
 			}
 		}
 		if x[i] < 0 {
-			d := 1 << 30
+			d := inf
 			for k := 0; k <= q; k++ {
 				for j := 0; j < n; j++ {
 					if t[j] < 0 {
