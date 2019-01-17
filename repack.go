@@ -94,6 +94,12 @@ func (c *RepackCommand) Run(args []string) error {
 	return nil
 }
 
+func isNoStdPackage(p *types.Package) bool {
+	importPath := p.Path()
+	host := strings.Split(importPath, "/")[0]
+	return strings.Index(host, ".") >= 0
+}
+
 func walkFields(a []string, s *types.Struct, prefix string) []string {
 	for i := 0; i < s.NumFields(); i++ {
 		f := s.Field(i)
@@ -105,7 +111,7 @@ func walkFields(a []string, s *types.Struct, prefix string) []string {
 			t = ptr.Elem()
 		}
 		named, ok := t.(*types.Named)
-		if ok && strings.IndexByte(strings.Split(named.Obj().Pkg().Path(), "/")[0], '.') >= 0 {
+		if ok && isNoStdPackage(named.Obj().Pkg()) {
 			t = t.Underlying()
 		}
 		st, ok := t.(*types.Struct)
