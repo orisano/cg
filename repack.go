@@ -80,7 +80,7 @@ func (c *RepackCommand) Run(args []string) error {
 			if i >= len(dst) || j >= len(src) {
 				a[i][j] = 0
 			} else {
-				a[i][j] = -computeEditDistance(dst[i], src[j])
+				a[i][j] = -computeEditDistance(dst[i], src[j]) + -computeEditDistance(suffix(dst[i], 5), suffix(src[j], 5))
 			}
 		}
 	}
@@ -92,6 +92,13 @@ func (c *RepackCommand) Run(args []string) error {
 		}
 	}
 	return nil
+}
+
+func suffix(s string, n int) string {
+	if len(s) > n {
+		return s[len(s)-n:]
+	}
+	return s
 }
 
 func isNoStdPackage(p *types.Package) bool {
