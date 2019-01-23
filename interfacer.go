@@ -8,7 +8,6 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
-	"log"
 	"os"
 	"strings"
 
@@ -148,7 +147,6 @@ func toInterfaceDecl(name string, methods []*ast.FuncDecl) *ast.GenDecl {
 
 func toConstructorDecl(interfaceName string, structType *ast.TypeSpec, ignores []string) *ast.FuncDecl {
 	fields := structType.Type.(*ast.StructType).Fields
-	log.Print(fields)
 	if fields != nil {
 		var fs []*ast.Field
 		for _, f := range fields.List {
