@@ -8,6 +8,7 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"log"
 	"os"
 	"strings"
 
@@ -17,12 +18,14 @@ import (
 )
 
 type InterfacerCommand struct {
-	File string
+	File    string
+	Ignores string
 }
 
 func (c *InterfacerCommand) FlagSet() *flag.FlagSet {
 	fs := flag.NewFlagSet("interfacer", flag.ExitOnError)
 	fs.StringVar(&c.File, "f", os.Getenv("GOFILE"), "source path (required, default: $GOFILE)")
+	fs.StringVar(&c.Ignores, "i", "", "ignore fields (comma separated)")
 	return fs
 }
 
@@ -41,9 +44,10 @@ func (c *InterfacerCommand) Run(args []string) error {
 	interfaceName := strings.Title(st.Name.Name)
 	methods := getMethods(f, st)
 
-	interfaceDecl := toInterfaceDecl(interfaceName, methods)
-	constructorDecl := toConstructorDecl(interfaceName, st)
+	ignores := strings.Split(c.Ignores, ",")
 
+	interfaceDecl := toInterfaceDecl(interfaceName, methods)
+	constructorDecl := toConstructorDecl(interfaceName, st, ignores)
 	genFilename := strings.TrimSuffix(c.File, ".go") + "_gen.go"
 	gf := &ast.File{
 		Name:    f.Name,
@@ -142,11 +146,39 @@ func toInterfaceDecl(name string, methods []*ast.FuncDecl) *ast.GenDecl {
 	}
 }
 
-func toConstructorDecl(interfaceName string, structType *ast.TypeSpec) *ast.FuncDecl {
+func toConstructorDecl(interfaceName string, structType *ast.TypeSpec, ignores []string) *ast.FuncDecl {
+	fields := structType.Type.(*ast.StructType).Fields
+	log.Print(fields)
+	if fields != nil {
+		var fs []*ast.Field
+		for _, f := range fields.List {
+			var idents []*ast.Ident
+			for _, name := range f.Names {
+				if isIgnored(name.Name, ignores) {
+					continue
+				}
+				idents = append(idents, name)
+			}
+			if len(idents) == 0 {
+				continue
+			}
+			field := *f
+			field.Names = idents
+			fs = append(fs, f)
+		}
+		if len(fs) != 0 {
+			fields = &ast.FieldList{
+				List: fs,
+			}
+		} else {
+			fields = nil
+		}
+	}
+
 	return &ast.FuncDecl{
 		Name: ast.NewIdent("New" + interfaceName),
 		Type: &ast.FuncType{
-			Params: structType.Type.(*ast.StructType).Fields,
+			Params: fields,
 			Results: &ast.FieldList{
 				List: []*ast.Field{
 					{Type: ast.NewIdent(interfaceName)},
@@ -158,7 +190,7 @@ func toConstructorDecl(interfaceName string, structType *ast.TypeSpec) *ast.Func
 			List: []ast.Stmt{
 				&ast.ReturnStmt{
 					Results: []ast.Expr{
-						newInstanceExpr(structType),
+						newInstanceExpr(structType, ignores),
 						ast.NewIdent("nil"),
 					},
 				},
@@ -167,7 +199,16 @@ func toConstructorDecl(interfaceName string, structType *ast.TypeSpec) *ast.Func
 	}
 }
 
-func newInstanceExpr(structType *ast.TypeSpec) ast.Expr {
+func isIgnored(s string, ignores []string) bool {
+	for _, ignore := range ignores {
+		if s == ignore {
+			return true
+		}
+	}
+	return false
+}
+
+func newInstanceExpr(structType *ast.TypeSpec, ignores []string) ast.Expr {
 	cl := &ast.CompositeLit{
 		Type: structType.Name,
 	}
@@ -175,6 +216,9 @@ func newInstanceExpr(structType *ast.TypeSpec) ast.Expr {
 	st := structType.Type.(*ast.StructType)
 	if st.Fields != nil {
 		for _, f := range st.Fields.List {
+			if isIgnored(f.Names[0].Name, ignores) {
+				continue
+			}
 			cl.Elts = append(cl.Elts, &ast.KeyValueExpr{
 				Key:   f.Names[0],
 				Value: f.Names[0],
