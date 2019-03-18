@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/orisano/subflag"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/go/loader"
 )
@@ -28,7 +27,7 @@ func (c *RepackCommand) FlagSet() *flag.FlagSet {
 
 func (c *RepackCommand) Run(args []string) error {
 	if c.Source == "" || c.Destination == "" {
-		return subflag.ErrInvalidArguments
+		return flag.ErrHelp
 	}
 	srcImportPath, srcTypeName, err := parseType(c.Source)
 	if err != nil {

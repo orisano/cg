@@ -1,5 +1,3 @@
-github.com/orisano/subflag v0.0.0-20180923144031-5e0163f95a80 h1:OvN3YYkavXggtgxe+JSsv+YHi4QWCr3MHIdlNHsiYng=
-github.com/orisano/subflag v0.0.0-20180923144031-5e0163f95a80/go.mod h1:ueTBNJyFwEUcwocOvXkgcILDL/1g7SrP46fup9Wp8ZM=
 github.com/orisano/subflag v0.0.0-20190122105037-1305293839a8 h1:JWndice10X0gg1p7PjJfLj9AW7LytY+/56rhIfJt+pE=
 github.com/orisano/subflag v0.0.0-20190122105037-1305293839a8/go.mod h1:ueTBNJyFwEUcwocOvXkgcILDL/1g7SrP46fup9Wp8ZM=
 github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=
