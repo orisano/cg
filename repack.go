@@ -215,10 +215,10 @@ func filterStrings(s []string, cond func(string) bool) []string {
 func hungarian(a [][]int) []int {
 	const inf = 1<<29
 	n := len(a)
-	fx := fill(make([]int, n), inf)
+	fx := fillInt(make([]int, n), inf)
 	fy := make([]int, n)
-	x := fill(make([]int, n), -1)
-	y := fill(make([]int, n), -1)
+	x := fillInt(make([]int, n), -1)
+	y := fillInt(make([]int, n), -1)
 
 	p := 0
 	q := 0
@@ -230,8 +230,8 @@ func hungarian(a [][]int) []int {
 	t := make([]int, n)
 	s := make([]int, n+1)
 	for i := 0; i < n; {
-		t = fill(t, -1)
-		s = fill(s, i)
+		t = fillInt(t, -1)
+		s = fillInt(s, i)
 		for p, q = 0, 0; p <= q && x[i] < 0; p++ {
 			for k, j := s[p], 0; j < n && x[i] < 0; j++ {
 				if fx[k]+fy[j] == a[k][j] && t[j] < 0 {
@@ -272,7 +272,7 @@ func hungarian(a [][]int) []int {
 	return x
 }
 
-func fill(a []int, v int) []int {
+func fillInt(a []int, v int) []int {
 	for i := range a {
 		a[i] = v
 	}
