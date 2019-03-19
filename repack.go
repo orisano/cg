@@ -48,8 +48,8 @@ func (c *RepackCommand) Run(args []string) error {
 	srcType := prog.Package(srcImportPath).Pkg.Scope().Lookup(srcTypeName).Type().Underlying().(*types.Struct)
 	dstType := prog.Package(dstImportPath).Pkg.Scope().Lookup(dstTypeName).Type().Underlying().(*types.Struct)
 
-	src := walkFields(nil, srcType, "y")
-	dst := walkFields(nil, dstType, "x")
+	src := enumerateFields(srcType, "y")
+	dst := enumerateFields(dstType, "x")
 
 	ignores := strings.Split(c.Ignores, ",")
 	cond := func(s string) bool {
@@ -71,7 +71,7 @@ func (c *RepackCommand) Run(args []string) error {
 		return len(dst[j]) < len(dst[i])
 	})
 
-	n := maxi(len(src), len(dst))
+	n := maxInt(len(src), len(dst))
 	a := make([][]int, n)
 	for i := 0; i < n; i++ {
 		a[i] = make([]int, n)
@@ -106,11 +106,29 @@ func isNoStdPackage(p *types.Package) bool {
 	return strings.Index(host, ".") >= 0
 }
 
-func walkFields(a []string, s *types.Struct, prefix string) []string {
+func toPath(prefix string, stack []*types.Var) string {
+	s := []string{prefix}
+	for _, f := range stack {
+		s = append(s, f.Name())
+	}
+	return strings.Join(s, ".")
+}
+
+func enumerateFields(s *types.Struct, prefix string) []string {
+	var fields []string
+	WalkFields(s, func(s *types.Struct, stack []*types.Var) {
+		fields = append(fields, toPath(prefix, stack))
+	})
+	return fields
+}
+
+func WalkFields(root *types.Struct, fn func(s *types.Struct, stack []*types.Var)) {
+	walkFields(root, fn, nil)
+}
+
+func walkFields(s *types.Struct, fn func(*types.Struct, []*types.Var), stack []*types.Var) {
 	for i := 0; i < s.NumFields(); i++ {
 		f := s.Field(i)
-		name := prefix + "." + f.Name()
-
 		t := f.Type()
 		ptr, ok := t.(*types.Pointer)
 		if ok {
@@ -122,12 +140,11 @@ func walkFields(a []string, s *types.Struct, prefix string) []string {
 		}
 		st, ok := t.(*types.Struct)
 		if ok {
-			a = walkFields(a, st, name)
+			walkFields(st, fn, append(stack, f))
 		} else {
-			a = append(a, name)
+			fn(s, append(stack, f))
 		}
 	}
-	return a
 }
 
 func parseType(s string) (importPath, typeName string, err error) {
@@ -163,13 +180,13 @@ func computeEditDistance(a, b string) int {
 			if x[i-1] == y[j-1] {
 				replaceCost = 0
 			}
-			d[i][j] = mini(d[i][j-1]+1, mini(d[i-1][j]+1, d[i-1][j-1]+replaceCost))
+			d[i][j] = minInt(d[i][j-1]+1, minInt(d[i-1][j]+1, d[i-1][j-1]+replaceCost))
 		}
 	}
 	return d[N][M]
 }
 
-func mini(a, b int) int {
+func minInt(a, b int) int {
 	if a < b {
 		return a
 	} else {
@@ -177,7 +194,7 @@ func mini(a, b int) int {
 	}
 }
 
-func maxi(a, b int) int {
+func maxInt(a, b int) int {
 	if a > b {
 		return a
 	} else {
@@ -207,7 +224,7 @@ func hungarian(a [][]int) []int {
 	q := 0
 	for i := range a {
 		for j := range a[i] {
-			fx[i] = maxi(fx[i], a[i][j])
+			fx[i] = maxInt(fx[i], a[i][j])
 		}
 	}
 	t := make([]int, n)
@@ -236,7 +253,7 @@ func hungarian(a [][]int) []int {
 			for k := 0; k <= q; k++ {
 				for j := 0; j < n; j++ {
 					if t[j] < 0 {
-						d = mini(d, fx[s[k]]+fy[j]-a[s[k]][j])
+						d = minInt(d, fx[s[k]]+fy[j]-a[s[k]][j])
 					}
 				}
 			}
