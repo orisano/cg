@@ -85,11 +85,39 @@ func (c *RepackCommand) Run(args []string) error {
 	}
 
 	x := hungarian(a)
+	m := make(map[string]string)
 	for i, d := range dst {
 		if 0 <= x[i] && x[i] < len(src) {
-			fmt.Println(d, "=", src[x[i]])
+			m[d] = src[x[i]]
 		}
 	}
+
+	indent := 0
+	WalkFields(dstType, func(stack []*types.Var) {
+		fmt.Print(strings.Repeat(" ", indent * 4), stack[len(stack)-1].Name(), ": ", m[toPath("x", stack)], ",\n")
+	}, func(stack []*types.Var) {
+		var name string
+		var key string
+		if len(stack) == 0 {
+			name = dstTypeName
+			key = ""
+		} else {
+			last := stack[len(stack)-1]
+			name = toLit(last.Type())
+			key = last.Name() + ": "
+		}
+		fmt.Print(strings.Repeat(" ", indent * 4), key, name, "{\n")
+		indent++
+	}, func(stack []*types.Var) {
+		indent--
+		fmt.Print(strings.Repeat(" ", indent * 4), "}")
+		if indent != 0 {
+			fmt.Print(",")
+		}
+		fmt.Println()
+	})
+
+
 	return nil
 }
 
@@ -114,19 +142,27 @@ func toPath(prefix string, stack []*types.Var) string {
 	return strings.Join(s, ".")
 }
 
+func toLit(t types.Type) string {
+	tokens := strings.Split(t.String(), "/")
+	return tokens[len(tokens)-1]
+}
+
 func enumerateFields(s *types.Struct, prefix string) []string {
 	var fields []string
-	WalkFields(s, func(s *types.Struct, stack []*types.Var) {
+	WalkFields(s, func(stack []*types.Var) {
 		fields = append(fields, toPath(prefix, stack))
-	})
+	}, nil, nil)
 	return fields
 }
 
-func WalkFields(root *types.Struct, fn func(s *types.Struct, stack []*types.Var)) {
-	walkFields(root, fn, nil)
+func WalkFields(root *types.Struct, fn func(stack []*types.Var), pre, post func(stack []*types.Var)) {
+	walkFields(root, fn, pre, post, nil)
 }
 
-func walkFields(s *types.Struct, fn func(*types.Struct, []*types.Var), stack []*types.Var) {
+func walkFields(s *types.Struct, fn func([]*types.Var), pre, post func([]*types.Var), stack []*types.Var) {
+	if pre != nil {
+		pre(stack)
+	}
 	for i := 0; i < s.NumFields(); i++ {
 		f := s.Field(i)
 		t := f.Type()
@@ -140,10 +176,13 @@ func walkFields(s *types.Struct, fn func(*types.Struct, []*types.Var), stack []*
 		}
 		st, ok := t.(*types.Struct)
 		if ok {
-			walkFields(st, fn, append(stack, f))
+			walkFields(st, fn, pre, post, append(stack, f))
 		} else {
-			fn(s, append(stack, f))
+			fn(append(stack, f))
 		}
+	}
+	if post != nil {
+		post(stack)
 	}
 }
 
