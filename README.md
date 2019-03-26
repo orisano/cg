@@ -11,8 +11,6 @@ go get github.com/orisano/cg
 ```
 //go:generate cg interfacer
 ```
-### model
-...
 
 ### repack
 ...
