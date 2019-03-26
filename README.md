@@ -14,6 +14,9 @@ go get github.com/orisano/cg
 ### model
 ...
 
+### repack
+...
+
 ## Author
 Nao YONASHIRO(@orisano)
 
