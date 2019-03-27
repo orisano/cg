@@ -11,7 +11,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/orisano/subflag"
 	"github.com/pkg/errors"
 	"golang.org/x/tools/imports"
 )
@@ -30,7 +29,7 @@ func (c *InterfacerCommand) FlagSet() *flag.FlagSet {
 
 func (c *InterfacerCommand) Run(args []string) error {
 	if c.File == "" {
-		return subflag.ErrInvalidArguments
+		return flag.ErrHelp
 	}
 	f, err := parser.ParseFile(token.NewFileSet(), c.File, nil, parser.AllErrors)
 	if err != nil {
