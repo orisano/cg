@@ -16,7 +16,7 @@ go get github.com/orisano/cg
 ...
 
 ## Author
-Nao YONASHIRO(@orisano)
+Nao Yonashiro (@orisano)
 
 ## License
 MIT
