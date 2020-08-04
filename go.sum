@@ -2,5 +2,7 @@ github.com/orisano/subflag v0.0.0-20190122105037-1305293839a8 h1:JWndice10X0gg1p
 github.com/orisano/subflag v0.0.0-20190122105037-1305293839a8/go.mod h1:ueTBNJyFwEUcwocOvXkgcILDL/1g7SrP46fup9Wp8ZM=
 github.com/pkg/errors v0.8.0 h1:WdK/asTD0HN+q6hsWO3/vpuAkAr+tw6aNJNDFFf0+qw=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 golang.org/x/tools v0.0.0-20181128225727-c5b00d9557fd h1:iGtqU5YFAjHfcmM6XLsTOpIm8HrEmDpt+XiZaxrJhyE=
 golang.org/x/tools v0.0.0-20181128225727-c5b00d9557fd/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
