@@ -3,7 +3,9 @@ module github.com/orisano/cg
 go 1.15
 
 require (
-	github.com/orisano/subflag v0.0.0-20190122105037-1305293839a8
+	github.com/orisano/subflag v1.0.0
 	github.com/pkg/errors v0.9.1
-	golang.org/x/tools v0.0.0-20181128225727-c5b00d9557fd
+	golang.org/x/mod v0.4.2 // indirect
+	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect
+	golang.org/x/tools v0.1.0
 )
