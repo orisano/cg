@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pkg/errors"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -31,11 +30,11 @@ func (c *RepackCommand) Run(args []string) error {
 	}
 	srcImportPath, srcTypeName, err := parseType(c.Source)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse source type")
+		return fmt.Errorf("parse source type: %w", err)
 	}
 	dstImportPath, dstTypeName, err := parseType(c.Destination)
 	if err != nil {
-		return errors.Wrap(err, "failed to parse destination type")
+		return fmt.Errorf("parse destination type: %w", err)
 	}
 
 	var conf loader.Config
@@ -43,7 +42,7 @@ func (c *RepackCommand) Run(args []string) error {
 	conf.Import(dstImportPath)
 	prog, err := conf.Load()
 	if err != nil {
-		return errors.Wrap(err, "failed to load program")
+		return fmt.Errorf("load program: %w", err)
 	}
 	srcType := prog.Package(srcImportPath).Pkg.Scope().Lookup(srcTypeName).Type().Underlying().(*types.Struct)
 	dstType := prog.Package(dstImportPath).Pkg.Scope().Lookup(dstTypeName).Type().Underlying().(*types.Struct)
@@ -94,7 +93,7 @@ func (c *RepackCommand) Run(args []string) error {
 
 	indent := 0
 	WalkFields(dstType, func(stack []*types.Var) {
-		fmt.Print(strings.Repeat(" ", indent * 4), stack[len(stack)-1].Name(), ": ", m[toPath("x", stack)], ",\n")
+		fmt.Print(strings.Repeat(" ", indent*4), stack[len(stack)-1].Name(), ": ", m[toPath("x", stack)], ",\n")
 	}, func(stack []*types.Var) {
 		var name string
 		var key string
@@ -106,17 +105,16 @@ func (c *RepackCommand) Run(args []string) error {
 			name = toLit(last.Type())
 			key = last.Name() + ": "
 		}
-		fmt.Print(strings.Repeat(" ", indent * 4), key, name, "{\n")
+		fmt.Print(strings.Repeat(" ", indent*4), key, name, "{\n")
 		indent++
 	}, func(stack []*types.Var) {
 		indent--
-		fmt.Print(strings.Repeat(" ", indent * 4), "}")
+		fmt.Print(strings.Repeat(" ", indent*4), "}")
 		if indent != 0 {
 			fmt.Print(",")
 		}
 		fmt.Println()
 	})
-
 
 	return nil
 }
@@ -189,7 +187,7 @@ func walkFields(s *types.Struct, fn func([]*types.Var), pre, post func([]*types.
 func parseType(s string) (importPath, typeName string, err error) {
 	tokens := strings.Split(s, "#")
 	if len(tokens) != 2 {
-		return "", "", errors.Errorf("invalid format %q", s)
+		return "", "", fmt.Errorf("invalid format %q", s)
 	}
 	return tokens[0], tokens[1], nil
 }
@@ -252,7 +250,7 @@ func filterStrings(s []string, cond func(string) bool) []string {
 }
 
 func hungarian(a [][]int) []int {
-	const inf = 1<<29
+	const inf = 1 << 29
 	n := len(a)
 	fx := fillInt(make([]int, n), inf)
 	fy := make([]int, n)
