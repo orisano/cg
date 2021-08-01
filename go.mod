@@ -4,6 +4,6 @@ go 1.15
 
 require (
 	github.com/orisano/subflag v1.0.0
-	golang.org/x/sys v0.0.0-20210531225629-47163c9f4e4f // indirect
-	golang.org/x/tools v0.1.2
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/tools v0.1.5
 )
