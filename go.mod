@@ -4,5 +4,5 @@ go 1.15
 
 require (
 	github.com/orisano/subflag v1.0.0
-	golang.org/x/tools v0.7.0
+	golang.org/x/tools v0.8.0
 )
