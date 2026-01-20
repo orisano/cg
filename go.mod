@@ -6,7 +6,7 @@ toolchain go1.24.4
 
 require (
 	github.com/orisano/subflag v1.0.0
-	golang.org/x/tools v0.40.0
+	golang.org/x/tools v0.41.0
 )
 
 require (
